@@ -1,0 +1,17 @@
+services:
+  nginx:
+    environment:
+      NESTED_VOLUME_PATH: ${NESTED_VOLUME_PATH}
+    container_name: ignacio_nginx
+    image: nginx
+    volumes:
+      - ${NESTED_VOLUME_PATH}/nginx.conf:/etc/nginx/nginx.conf
+      - ${NESTED_VOLUME_PATH}/sites-available/default:/etc/nginx/sites-available/default
+    ports:
+      - "80:80"
+      - "443:443"
+    network_mode: host
+
+volumes:
+  jenkins_home:
+    external: true

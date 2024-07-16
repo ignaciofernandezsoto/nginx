@@ -1,39 +1,39 @@
 #!/usr/bin/env groovy
 
-def NEW_FULL_CONTAINER_NAME = ''
+def NESTED_VOLUME_PATH = ''
 
 pipeline {
     agent any
+
     stages {
-        stage('Create new container name') {
+        stage('Set Nested Volume Path') {
             steps {
                 script {
-                    def current_date = sh script:'date +%Y%m%d%H%H%S', returnStdout: true
-                    def trimmed_current_date = current_date.trim()
-                    def random_string = sh script:'openssl rand -hex 4', returnStdout: true
-                    def trimmed_random_string = random_string.trim()
-                    def new_full_container_name = sh script:'echo "${NGINX_FULL_IMAGE_NAME}_' + trimmed_current_date + '_' + trimmed_random_string + '"', returnStdout: true
-                    NEW_FULL_CONTAINER_NAME = new_full_container_name.trim()
+                    def nestedVolumePath = sh(
+                        script: "docker volume inspect --format '{{ .Mountpoint }}' jenkins_home",
+                        returnStdout: true
+                    ).trim()
+
+                    def currentWorkspacePath = env.WORKSPACE
+
+                    def homeDir = env.HOME
+
+                    NESTED_VOLUME_PATH = currentWorkspacePath.replace(homeDir, nestedVolumePath)
+
+                    echo "Nested Volume Path: ${NESTED_VOLUME_PATH}"
                 }
             }
         }
-        stage('Build docker image') {
+
+        stage('Stop and remove previous docker container') {
             steps {
-                sh 'docker build -t ' + NEW_FULL_CONTAINER_NAME + ' .'
+                sh 'docker compose down --remove-orphans'
             }
-        }
-        stage('Stop and delete previous docker container') {
-            steps {
-                sh 'docker ps -a \
-                  | awk \'{ print $1,$2 }\' \
-                  | grep ${NGINX_SHORT_IMAGE_NAME} \
-                  | awk \'{print $1 }\' \
-                  | xargs -I {} docker rm -f {}'
-              }
         }
         stage('Run new docker container') {
             steps {
-                sh 'docker run --network="host" --name ${NGINX_SHORT_IMAGE_NAME} -d --restart unless-stopped ' + NEW_FULL_CONTAINER_NAME
+                echo "Using Nested Volume Path: ${NESTED_VOLUME_PATH}"
+                sh 'NESTED_VOLUME_PATH=' + NESTED_VOLUME_PATH + ' docker compose up -d'
             }
         }
     }
