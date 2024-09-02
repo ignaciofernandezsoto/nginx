@@ -33,7 +33,7 @@ pipeline {
         stage('Run new docker container') {
             steps {
                 echo "Using Nested Volume Path: ${NESTED_VOLUME_PATH}"
-                sh 'NESTED_VOLUME_PATH=' + NESTED_VOLUME_PATH + ' docker compose up -d'
+                sh 'NESTED_VOLUME_PATH=' + NESTED_VOLUME_PATH + ' EMAIL=${EMAIL} docker compose up -d'
             }
         }
     }
