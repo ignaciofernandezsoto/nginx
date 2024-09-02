@@ -16,7 +16,7 @@ services:
   lets_encrypt:
     container_name: "certbot"
     image: certbot/certbot
-    command: sh -c "certbot certonly --webroot -w /tmp/acme-challenge/ -d ijfs.com.ar --text --agree-tos --email ${EMAIL} --rsa-key-size 4096 --verbose --keep-until-expiring --preferred-challenges=http"
+    command: sh -c "certbot certonly --webroot -w /tmp/acme-challenge/ -d sf.ijfs.com.ar --text --agree-tos --email ${EMAIL} --rsa-key-size 4096 --verbose --keep-until-expiring --preferred-challenges=http"
     entrypoint: ""
     volumes:
       - ${NESTED_VOLUME_PATH}/etc/letsencrypt:/etc/letsencrypt
