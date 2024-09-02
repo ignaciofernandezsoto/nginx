@@ -7,6 +7,8 @@ services:
     volumes:
       - ${NESTED_VOLUME_PATH}/nginx.conf:/etc/nginx/nginx.conf:ro
       - ${NESTED_VOLUME_PATH}/sites-available/default:/etc/nginx/sites-available/default:ro
+      - ${NESTED_VOLUME_PATH}/etc/letsencrypt:/etc/letsencrypt
+      - ${NESTED_VOLUME_PATH}/tmp/acme-challenge:/tmp/acme-challenge
     ports:
       - "80:80"
       - "443:443"
@@ -14,6 +16,9 @@ services:
     restart: unless-stopped
 
   lets_encrypt:
+    environment:
+      TERM: xterm
+      EMAIL: ${EMAIL}
     container_name: "certbot"
     image: certbot/certbot
     command: sh -c "certbot certonly --webroot -w /tmp/acme-challenge/ -d sf.ijfs.com.ar --text --agree-tos --email ${EMAIL} --rsa-key-size 4096 --verbose --keep-until-expiring --preferred-challenges=http"
@@ -21,8 +26,6 @@ services:
     volumes:
       - ${NESTED_VOLUME_PATH}/etc/letsencrypt:/etc/letsencrypt
       - ${NESTED_VOLUME_PATH}/tmp/acme-challenge:/tmp/acme-challenge
-    environment:
-      - TERM=xterm
 
 volumes:
   jenkins_home:
